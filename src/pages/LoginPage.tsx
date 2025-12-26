@@ -11,8 +11,7 @@ const loginSchema = z.object({
   mobileNumber: z
     .string()
     .trim()
-    .min(10, "Mobile number must be at least 10 digits")
-    .max(15, "Mobile number must be less than 15 digits")
+    .min(1, "Mobile number is required")
     .regex(/^[0-9]+$/, "Mobile number must contain only digits"),
   password: z
     .string()
