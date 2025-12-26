@@ -87,7 +87,7 @@ export interface DashboardStats {
 
 // Auth API
 export const adminLogin = async (mobileNumber: string, password: string): Promise<LoginResponse> => {
-  const response = await fetch(`${BASE_URL}/auth/admin/login`, {
+  const response = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
