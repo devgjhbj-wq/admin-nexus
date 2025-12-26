@@ -1,10 +1,11 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { Outlet, Navigate } from "react-router-dom";
-import { getAuthToken } from "@/lib/api";
+import { getAuthToken, getAdminUser } from "@/lib/api";
 
 export function AdminLayout() {
   const token = getAuthToken();
+  const user = getAdminUser();
 
   if (!token) {
     return <Navigate to="/login" replace />;
@@ -18,7 +19,12 @@ export function AdminLayout() {
           <header className="sticky top-0 z-10 flex h-12 items-center border-b border-border bg-background/80 px-4 backdrop-blur-sm">
             <SidebarTrigger className="mr-4" />
             <div className="flex-1" />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              {user && (
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  {user.userId}
+                </span>
+              )}
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 Admin
               </span>
