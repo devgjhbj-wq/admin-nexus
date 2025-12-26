@@ -58,15 +58,14 @@ export default function TransactionsPage() {
         tx.status === "pending" ? (
           <div className="flex gap-2">
             <Button
-              size="sm"
-              variant="success"
+         
+           
               onClick={() => mutation.mutate({ orderId: tx.orderId, status: "completed" })}
             >
               Approve
             </Button>
             <Button
-              size="sm"
-              variant="destructive"
+           
               onClick={() => mutation.mutate({ orderId: tx.orderId, status: "failed" })}
             >
               Reject
