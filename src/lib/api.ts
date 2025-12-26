@@ -174,3 +174,28 @@ export const fetchDevices = async (page: number = 1): Promise<PaginatedResponse<
   }
   return response.json();
 };
+
+
+// Admin: approve or reject transaction
+export const updateTransactionStatus = async (
+  orderId: string,
+  status: "completed" | "failed"
+): Promise<Transaction> => {
+  const response = await fetch(`${BASE_URL}/transactions/${orderId}/status`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+      window.location.href = "/login";
+    }
+    throw new Error(data.error || "Failed to update transaction status");
+  }
+
+  return data;
+};

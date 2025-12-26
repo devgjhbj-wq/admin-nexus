@@ -1,81 +1,78 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreditCard } from "lucide-react";
-import { fetchTransactions, Transaction } from "@/lib/api";
+import { fetchTransactions, updateTransactionStatus, Transaction } from "@/lib/api";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
 
 export default function TransactionsPage() {
   const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["transactions", page],
     queryFn: () => fetchTransactions(page),
   });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
+  const mutation = useMutation({
+    mutationFn: ({ orderId, status }: { orderId: string; status: "completed" | "failed" }) =>
+      updateTransactionStatus(orderId, status),
+    onSuccess: () => {
+      // Refresh transactions after update
+      queryClient.invalidateQueries({ queryKey: ["transactions", page] });
+    },
+  });
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-IN", {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
     }).format(value);
-  };
 
   const columns = [
-    {
-      key: "orderId",
-      header: "Order ID",
-      render: (tx: Transaction) => (
-        <span className="font-mono text-primary">{tx.orderId}</span>
-      ),
-    },
-    {
-      key: "userId",
-      header: "User ID",
-      render: (tx: Transaction) => (
-        <span className="font-mono">{tx.userId}</span>
-      ),
-    },
-    {
-      key: "type",
-      header: "Type",
-      render: (tx: Transaction) => <StatusBadge status={tx.type} />,
-    },
-    {
-      key: "amount",
-      header: "Amount",
-      render: (tx: Transaction) => (
-        <span
-          className={`font-mono ${
-            tx.type === "credit" ? "text-primary" : "text-accent"
-          }`}
-        >
-          {tx.type === "credit" ? "+" : "-"}
-          {formatCurrency(tx.amount)}
+    { key: "orderId", header: "Order ID", render: (tx: Transaction) => <span className="font-mono text-primary">{tx.orderId}</span> },
+    { key: "userId", header: "User ID", render: (tx: Transaction) => <span className="font-mono">{tx.userId}</span> },
+    { key: "type", header: "Type", render: (tx: Transaction) => <StatusBadge status={tx.type} /> },
+    { key: "amount", header: "Amount", render: (tx: Transaction) => (
+        <span className={`font-mono ${tx.type === "credit" ? "text-primary" : "text-accent"}`}>
+          {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
         </span>
-      ),
-    },
+      ) },
+    { key: "status", header: "Status", render: (tx: Transaction) => <StatusBadge status={tx.status} /> },
+    { key: "createdAt", header: "Date", render: (tx: Transaction) => <span className="text-muted-foreground">{formatDate(tx.createdAt)}</span> },
     {
-      key: "status",
-      header: "Status",
-      render: (tx: Transaction) => <StatusBadge status={tx.status} />,
-    },
-    {
-      key: "createdAt",
-      header: "Date",
-      render: (tx: Transaction) => (
-        <span className="text-muted-foreground">{formatDate(tx.createdAt)}</span>
-      ),
+      key: "actions",
+      header: "Actions",
+      render: (tx: Transaction) =>
+        tx.status === "pending" ? (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="success"
+              onClick={() => mutation.mutate({ orderId: tx.orderId, status: "completed" })}
+            >
+              Approve
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => mutation.mutate({ orderId: tx.orderId, status: "failed" })}
+            >
+              Reject
+            </Button>
+          </div>
+        ) : null,
     },
   ];
 
@@ -87,9 +84,7 @@ export default function TransactionsPage() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-foreground">Transactions</h1>
-          <p className="text-muted-foreground">
-            {data?.totalRecords ?? 0} total transactions
-          </p>
+          <p className="text-muted-foreground">{data?.totalRecords ?? 0} total transactions</p>
         </div>
       </div>
 
