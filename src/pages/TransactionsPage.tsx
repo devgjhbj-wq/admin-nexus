@@ -45,11 +45,26 @@ export default function TransactionsPage() {
     { key: "userId", header: "User ID", render: (tx: Transaction) => <span className="font-mono">{tx.userId}</span> },
     { key: "type", header: "Type", render: (tx: Transaction) => <StatusBadge status={tx.type} /> },
     { key: "amount", header: "Amount", render: (tx: Transaction) => (
-        <span className={`font-mono ${tx.type === "credit" ? "text-primary" : "text-accent"}`}>
-          {tx.type === "credit" ? "+" : "-"}{formatCurrency(tx.amount)}
+        <span className={`font-mono ${tx.type === "deposit" ? "text-primary" : "text-accent"}`}>
+          {tx.type === "deposit" ? "+" : "-"}{formatCurrency(tx.amount)}
         </span>
       ) },
     { key: "status", header: "Status", render: (tx: Transaction) => <StatusBadge status={tx.status} /> },
+    {
+      key: "bankAccount",
+      header: "Bank Details",
+      render: (tx: Transaction) =>
+        tx.meta?.bankAccount ? (
+          <div className="text-sm">
+            <div>{tx.meta.bankAccount.holderName}</div>
+            <div className="text-muted-foreground">{tx.meta.bankAccount.accountNumber}</div>
+            <div className="text-muted-foreground">{tx.meta.bankAccount.ifsc}</div>
+            <div className="text-muted-foreground">{tx.meta.bankAccount.bankName}</div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+    },
     { key: "createdAt", header: "Date", render: (tx: Transaction) => <span className="text-muted-foreground">{formatDate(tx.createdAt)}</span> },
     {
       key: "actions",
@@ -58,14 +73,14 @@ export default function TransactionsPage() {
         tx.status === "pending" ? (
           <div className="flex gap-2">
             <Button
-         
-           
+              size="sm"
               onClick={() => mutation.mutate({ orderId: tx.orderId, status: "completed" })}
             >
               Approve
             </Button>
             <Button
-           
+              size="sm"
+              variant="destructive"
               onClick={() => mutation.mutate({ orderId: tx.orderId, status: "failed" })}
             >
               Reject

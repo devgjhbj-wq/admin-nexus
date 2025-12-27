@@ -53,13 +53,23 @@ export interface LinkedAccount {
   balance: number;
 }
 
+export interface BankAccount {
+  holderName: string;
+  accountNumber: string;
+  ifsc: string;
+  bankName: string;
+}
+
 export interface Transaction {
   orderId: string;
   userId: string;
   amount: number;
-  type: "credit" | "debit";
+  type: "deposit" | "withdrawal";
   status: "pending" | "completed" | "failed";
   createdAt: string;
+  meta?: {
+    bankAccount?: BankAccount;
+  };
 }
 
 export interface DeviceLog {
