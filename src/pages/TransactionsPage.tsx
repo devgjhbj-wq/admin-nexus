@@ -5,10 +5,17 @@ import { fetchTransactions, updateTransactionStatus, Transaction } from "@/lib/a
 import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { TransactionCard } from "@/components/transactions/TransactionCard";
+import { TransactionDetailModal } from "@/components/transactions/TransactionDetailModal";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TransactionsPage() {
   const [page, setPage] = useState(1);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const { data, isLoading } = useQuery({
     queryKey: ["transactions", page],
@@ -19,10 +26,24 @@ export default function TransactionsPage() {
     mutationFn: ({ orderId, status }: { orderId: string; status: "completed" | "failed" }) =>
       updateTransactionStatus(orderId, status),
     onSuccess: () => {
-      // Refresh transactions after update
       queryClient.invalidateQueries({ queryKey: ["transactions", page] });
+      setIsModalOpen(false);
+      setSelectedTransaction(null);
     },
   });
+
+  const handleCardClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsModalOpen(true);
+  };
+
+  const handleApprove = (orderId: string) => {
+    mutation.mutate({ orderId, status: "completed" });
+  };
+
+  const handleReject = (orderId: string) => {
+    mutation.mutate({ orderId, status: "failed" });
+  };
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleString("en-US", {
@@ -90,6 +111,63 @@ export default function TransactionsPage() {
     },
   ];
 
+  const renderMobileView = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          ))}
+        </div>
+      );
+    }
+
+    const transactions = data?.transactions ?? [];
+
+    if (transactions.length === 0) {
+      return (
+        <div className="text-center py-12 text-muted-foreground">
+          No transactions found
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {transactions.map((tx) => (
+          <TransactionCard
+            key={tx.orderId}
+            transaction={tx}
+            onClick={() => handleCardClick(tx)}
+          />
+        ))}
+        
+        {/* Mobile Pagination */}
+        <div className="flex items-center justify-between pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {data?.totalPages ?? 1}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= (data?.totalPages ?? 1)}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
@@ -102,14 +180,30 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <DataTable<Transaction>
-        columns={columns}
-        data={data?.transactions ?? []}
-        isLoading={isLoading}
-        page={page}
-        totalPages={data?.totalPages ?? 1}
-        onPageChange={setPage}
-        emptyMessage="No transactions found"
+      {isMobile ? (
+        renderMobileView()
+      ) : (
+        <DataTable<Transaction>
+          columns={columns}
+          data={data?.transactions ?? []}
+          isLoading={isLoading}
+          page={page}
+          totalPages={data?.totalPages ?? 1}
+          onPageChange={setPage}
+          emptyMessage="No transactions found"
+        />
+      )}
+
+      <TransactionDetailModal
+        transaction={selectedTransaction}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedTransaction(null);
+        }}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        isLoading={mutation.isPending}
       />
     </div>
   );
