@@ -1,8 +1,11 @@
 const BASE_URL = "https://rbslot.onrender.com/api";
 
 // Store the token in memory and localStorage
-let authToken: string | null = localStorage.getItem("admin_token");
-let adminUser: AdminUser | null = JSON.parse(localStorage.getItem("admin_user") || "null");
+let authToken: string | null = localStorage.getItem("admin_token") || null;
+const storedUser = localStorage.getItem("admin_user");
+let adminUser: AdminUser | null = storedUser && storedUser !== "undefined" && storedUser !== "null" 
+  ? JSON.parse(storedUser) 
+  : null;
 
 export interface AdminUser {
   userId: string;
