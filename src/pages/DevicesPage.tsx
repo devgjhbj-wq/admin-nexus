@@ -4,16 +4,28 @@ import { Smartphone, Copy, Check } from "lucide-react";
 import { fetchDevices, DeviceLog } from "@/lib/api";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
+import { DeviceCard } from "@/components/devices/DeviceCard";
+import { DeviceDetailModal } from "@/components/devices/DeviceDetailModal";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 export default function DevicesPage() {
   const [page, setPage] = useState(1);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<DeviceLog | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const { data, isLoading } = useQuery({
     queryKey: ["devices", page],
     queryFn: () => fetchDevices(page),
   });
+
+  const handleCardClick = (device: DeviceLog) => {
+    setSelectedDevice(device);
+    setIsModalOpen(true);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -114,6 +126,62 @@ export default function DevicesPage() {
     },
   ];
 
+  const renderMobileView = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          ))}
+        </div>
+      );
+    }
+
+    const devices = data?.devices ?? [];
+
+    if (devices.length === 0) {
+      return (
+        <div className="text-center py-12 text-muted-foreground">
+          No device logs found
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {devices.map((device) => (
+          <DeviceCard
+            key={device.id}
+            device={device}
+            onClick={() => handleCardClick(device)}
+          />
+        ))}
+        
+        <div className="flex items-center justify-between pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {data?.totalPages ?? 1}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page >= (data?.totalPages ?? 1)}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
@@ -128,14 +196,27 @@ export default function DevicesPage() {
         </div>
       </div>
 
-      <DataTable<DeviceLog>
-        columns={columns}
-        data={data?.devices ?? []}
-        isLoading={isLoading}
-        page={page}
-        totalPages={data?.totalPages ?? 1}
-        onPageChange={setPage}
-        emptyMessage="No device logs found"
+      {isMobile ? (
+        renderMobileView()
+      ) : (
+        <DataTable<DeviceLog>
+          columns={columns}
+          data={data?.devices ?? []}
+          isLoading={isLoading}
+          page={page}
+          totalPages={data?.totalPages ?? 1}
+          onPageChange={setPage}
+          emptyMessage="No device logs found"
+        />
+      )}
+
+      <DeviceDetailModal
+        device={selectedDevice}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedDevice(null);
+        }}
       />
     </div>
   );
