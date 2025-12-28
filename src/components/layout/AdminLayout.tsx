@@ -2,6 +2,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { Outlet, Navigate } from "react-router-dom";
 import { getAuthToken, getAdminUser } from "@/lib/api";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 export function AdminLayout() {
   const token = getAuthToken();
@@ -20,6 +21,7 @@ export function AdminLayout() {
             <SidebarTrigger className="mr-4" />
             <div className="flex-1" />
             <div className="flex items-center gap-3">
+              <InstallAppButton />
               {user && (
                 <span className="text-[10px] font-mono text-muted-foreground">
                   {user.userId}
