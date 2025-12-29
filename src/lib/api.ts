@@ -92,6 +92,26 @@ export interface PaginatedResponse<T> {
   [key: string]: T[] | number;
 }
 
+// Deposit Types
+export interface Deposit {
+  order_id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  utr: string;
+  created_at: string;
+  gateway_order_no?: string;
+}
+
+export interface DepositResponse {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  deposits: Deposit[];
+}
+
 export interface DashboardStats {
   totalUsers: number;
   totalTransactions: number;
@@ -208,6 +228,62 @@ export const updateTransactionStatus = async (
       window.location.href = "/login";
     }
     throw new Error(data.error || "Failed to update transaction status");
+  }
+
+  return data;
+};
+
+// Deposit API Functions
+const DEPOSIT_BASE_URL = "https://rbslot.onrender.com/api/deposit/admin";
+
+export const fetchDeposits = async (
+  page: number = 1,
+  userId?: string,
+  orderId?: string
+): Promise<DepositResponse> => {
+  let url = `${DEPOSIT_BASE_URL}/find?page=${page}`;
+  
+  if (userId) {
+    url = `${DEPOSIT_BASE_URL}/find?user_id=${userId}&page=${page}`;
+  }
+  if (orderId) {
+    url = `${DEPOSIT_BASE_URL}/find?order_id=${orderId}`;
+  }
+
+  const response = await fetch(url, {
+    headers: getHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+      window.location.href = "/login";
+    }
+    throw new Error("Failed to fetch deposits");
+  }
+
+  return response.json();
+};
+
+export const updateDepositStatus = async (
+  orderId: string,
+  status: "SUCCESS" | "FAILED",
+  note: string
+): Promise<{ success: boolean; order_id: string; status: string }> => {
+  const response = await fetch(`${DEPOSIT_BASE_URL}/${orderId}/status`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify({ status, note }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken();
+      window.location.href = "/login";
+    }
+    throw new Error(data.error || "Failed to update deposit status");
   }
 
   return data;
