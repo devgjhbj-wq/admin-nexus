@@ -247,6 +247,7 @@ export default function DepositsPage() {
             value={searchUserId}
             onChange={(e) => setSearchUserId(e.target.value)}
             className="pl-9"
+            disabled={!!searchOrderId}
           />
         </div>
         <div className="relative flex-1">
@@ -256,9 +257,10 @@ export default function DepositsPage() {
             value={searchOrderId}
             onChange={(e) => setSearchOrderId(e.target.value)}
             className="pl-9"
+            disabled={!!searchUserId}
           />
         </div>
-        <Button onClick={handleSearch} className="shrink-0">
+        <Button onClick={handleSearch} className="shrink-0" disabled={!searchUserId && !searchOrderId}>
           <Search className="h-4 w-4 mr-2" />
           Search
         </Button>
