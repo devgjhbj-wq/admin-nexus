@@ -241,13 +241,25 @@ export const fetchDeposits = async (
   userId?: string,
   orderId?: string
 ): Promise<DepositResponse> => {
-  let url = `${DEPOSIT_BASE_URL}/find?page=${page}`;
-  
-  if (userId) {
-    url = `${DEPOSIT_BASE_URL}/find?user_id=${userId}&page=${page}`;
+  // Require either userId or orderId
+  if (!userId && !orderId) {
+    return {
+      page: 1,
+      limit: 25,
+      total: 0,
+      totalPages: 0,
+      deposits: [],
+    };
   }
+
+  let url: string;
+  
   if (orderId) {
+    // Order ID search returns a single deposit object
     url = `${DEPOSIT_BASE_URL}/find?order_id=${orderId}`;
+  } else {
+    // User ID search returns paginated array
+    url = `${DEPOSIT_BASE_URL}/find?user_id=${userId}&page=${page}`;
   }
 
   const response = await fetch(url, {
@@ -262,7 +274,21 @@ export const fetchDeposits = async (
     throw new Error("Failed to fetch deposits");
   }
 
-  return response.json();
+  const data = await response.json();
+
+  // If searching by order_id, API returns single deposit object, wrap it
+  if (orderId && data.order_id) {
+    return {
+      page: 1,
+      limit: 25,
+      total: 1,
+      totalPages: 1,
+      deposits: [data as Deposit],
+    };
+  }
+
+  // User ID search returns paginated response
+  return data as DepositResponse;
 };
 
 export const updateDepositStatus = async (
