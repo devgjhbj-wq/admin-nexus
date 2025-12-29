@@ -18,14 +18,16 @@ export default function DepositsPage() {
   const [page, setPage] = useState(1);
   const [searchUserId, setSearchUserId] = useState("");
   const [searchOrderId, setSearchOrderId] = useState("");
+  const [activeUserId, setActiveUserId] = useState("");
+  const [activeOrderId, setActiveOrderId] = useState("");
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["deposits", page, searchUserId, searchOrderId],
-    queryFn: () => fetchDeposits(page, searchUserId || undefined, searchOrderId || undefined),
+    queryKey: ["deposits", page, activeUserId, activeOrderId],
+    queryFn: () => fetchDeposits(page, activeUserId || undefined, activeOrderId || undefined),
   });
 
   const statusMutation = useMutation({
@@ -63,7 +65,8 @@ export default function DepositsPage() {
 
   const handleSearch = () => {
     setPage(1);
-    queryClient.invalidateQueries({ queryKey: ["deposits"] });
+    setActiveUserId(searchUserId);
+    setActiveOrderId(searchOrderId);
   };
 
   const getStatusKey = (status: string) => {
