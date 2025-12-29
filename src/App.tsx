@@ -9,6 +9,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import TransactionsPage from "./pages/TransactionsPage";
+import DepositsPage from "./pages/DepositsPage";
 import DevicesPage from "./pages/DevicesPage";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route element={<AdminLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/deposits" element={<DepositsPage />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/devices" element={<DevicesPage />} />
           </Route>

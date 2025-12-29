@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, CreditCard, Smartphone, LogOut, Terminal } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, Smartphone, LogOut, Terminal, Wallet } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Users", url: "/users", icon: Users },
+  { title: "Deposits", url: "/deposits", icon: Wallet },
   { title: "Transactions", url: "/transactions", icon: CreditCard },
   { title: "Device Logs", url: "/devices", icon: Smartphone },
 ];
