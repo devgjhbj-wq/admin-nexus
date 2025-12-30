@@ -121,11 +121,18 @@ export default function DepositsPage() {
       ),
     },
     {
-      key: "created_at" as keyof Deposit,
+      key: "channel_name" as keyof Deposit,
+      header: "Channel",
+      render: (deposit: Deposit) => (
+        <span className="text-xs">{deposit.channel_name || "N/A"}</span>
+      ),
+    },
+    {
+      key: "createdAt" as keyof Deposit,
       header: "Date",
       render: (deposit: Deposit) => (
         <span className="text-xs text-muted-foreground">
-          {format(new Date(deposit.created_at), "MMM dd, HH:mm")}
+          {format(new Date(deposit.createdAt), "MMM dd, HH:mm")}
         </span>
       ),
     },
