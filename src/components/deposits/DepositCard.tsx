@@ -35,6 +35,11 @@ export function DepositCard({ deposit, onClick }: DepositCardProps) {
             <p className="text-sm font-medium text-foreground">
               ₹{deposit.amount.toLocaleString()}
             </p>
+            {deposit.channel_name && (
+              <p className="text-xs text-muted-foreground">
+                {deposit.channel_name}
+              </p>
+            )}
           </div>
           <StatusBadge status={getStatusKey(deposit.status)} />
         </div>

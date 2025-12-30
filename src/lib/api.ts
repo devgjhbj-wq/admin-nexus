@@ -95,12 +95,14 @@ export interface PaginatedResponse<T> {
 // Deposit Types
 export interface Deposit {
   order_id: string;
-  user_id: string;
+  user_id?: string;
   amount: number;
   currency: string;
   status: string;
-  utr: string;
-  created_at: string;
+  utr?: string;
+  channel_name?: string;
+  createdAt: string;
+  updatedAt?: string;
   gateway_order_no?: string;
 }
 
